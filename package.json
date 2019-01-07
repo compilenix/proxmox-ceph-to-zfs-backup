@@ -15,7 +15,9 @@
   },
   "dependencies": {
     "fs-extra": "^7.0.1",
+    "moment": "^2.23.0",
     "request": "^2.88.0",
+    "stack-trace": "0.0.10",
     "tough-cookie-filestore": "0.0.1"
   },
   "devDependencies": {

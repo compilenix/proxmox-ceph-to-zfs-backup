@@ -3,18 +3,34 @@ const FileCookieStore = require('tough-cookie-filestore')
 const fs = require('fs-extra')
 
 class Config {
-  config () {
+  configure () {
     this.proxmoxApi = 'https://192.168.1.10:8006/api2/json'
     this.proxmoxUser = 'proxmoxUserName@pve'
     this.proxmoxPassword = ''
     this.requestUserAgent = `${this.packageJson.name}/${this.packageJson.version} (${this.packageJson.repository.url})`
+
+    this.debugLoggging = [
+      'index',
+      'requestWorker'
+    ]
+
+    this.infoLoggging = [
+      'index',
+      'requestWorker'
+    ]
+
+    this.errorLogggingDisable = [
+      // 'index',
+      // 'requestWorker',
+    ]
   }
 
   constructor () {
     // @ts-ignore
     this.packageJson = require('../package.json')
+    this.waitBetweenRequests = 10
 
-    this.config()
+    this.configure()
 
     if (!fs.existsSync('temp')) fs.ensureDirSync('temp')
     if (!fs.existsSync('temp/cookies.json')) fs.ensureFileSync('temp/cookies.json')
@@ -23,7 +39,7 @@ class Config {
     /** @type {(request.UrlOptions & request.CoreOptions) | (request.UriOptions & request.CoreOptions & request.UrlOptions)} */
     this.defaultRequestOptions = {
       method: 'GET',
-      url: '',
+      url: `${this.proxmoxApi}/`,
       headers: {
         'Connection': 'keep-alive',
         'User-Agent': this.requestUserAgent,
@@ -33,7 +49,8 @@ class Config {
       },
       gzip: true,
       jar: this.proxmoxCookies,
-      maxRedirects: 10
+      maxRedirects: 10,
+      rejectUnauthorized: false
     }
   }
 }
