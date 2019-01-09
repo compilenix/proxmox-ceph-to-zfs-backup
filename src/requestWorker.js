@@ -81,8 +81,7 @@ async function processQueue () {
 
       process.nextTick(() => task.callback(res))
       workerIsWaiting = false
-      log.debug(`worker has stoped processing task without fatal error: HTTP ${task.options.method} ${task.options.url}`)
-      log.info(`worker is processing task complete: HTTP ${task.options.method} ${task.options.url}`)
+      log.info(`worker is done processing task: HTTP ${task.options.method} ${task.options.url} -> ${res.response.statusCode} ${res.response.statusMessage}`)
       return resolve()
     }
 
@@ -93,8 +92,7 @@ async function processQueue () {
         let res = request(options)
         process.nextTick(() => task.callback(res)) // TODO: ???
         workerIsWaiting = false
-        log.debug(`worker has stoped processing task without fatal error: HTTP ${task.options.method} ${task.options.url}`)
-        log.info(`worker is processing task complete: HTTP ${task.options.method} ${task.options.url}`)
+        log.info(`worker is done processing task: HTTP ${task.options.method} ${task.options.url} -> ${res.response.statusCode} ${res.response.statusMessage}`)
         return resolve(res)
       } else {
         request(options, callback)
@@ -105,7 +103,7 @@ async function processQueue () {
       process.nextTick(() => task.callback(res))
       workerIsWaiting = false
       log.error('worker has stoped processing task', res.error)
-      log.info(`worker is processing task complete: HTTP ${task.options.method} ${task.options.url}`)
+      log.info(`worker is done processing task: HTTP ${task.options.method} ${task.options.url} -> ${res.response.statusCode} ${res.response.statusMessage}`)
       return resolve()
     }
   })
@@ -140,10 +138,10 @@ module.exports.request = async function (options, piped = false) {
 
 module.exports.stopWorker = function () {
   if (workerRunning || worker) {
-    log.debug('stopWorker(): was running and will be stopped now')
+    log.info('stopWorker(): was running and will be stopped now')
     clearInterval(worker)
     workerRunning = false
   } else {
-    log.debug('stopWorker(): was not running')
+    log.info('stopWorker(): was not running')
   }
 }
