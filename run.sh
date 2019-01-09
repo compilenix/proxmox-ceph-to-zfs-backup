@@ -4,4 +4,4 @@ set -e
 . ./enable-nvm.sh
 
 npm ci --production
-node $*
+node --harmony $*
