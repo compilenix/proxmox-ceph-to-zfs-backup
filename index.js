@@ -8,29 +8,23 @@ if (!fs.existsSync('./conf/config.js')) {
 
 const config = require('./conf/config')
 
-// const logging = require('./src/logging')
 const requestWorker = require('./src/requestWorker')
+const ProxmoxApi = require('./src/ProxmoxApi')
 
 async function run () {
-  const options = {
-    method: 'POST',
-    url: `${config.proxmoxApi}/access/ticket`,
-    form: {
-      username: config.proxmoxUser,
-      password: config.proxmoxPassword
-    }
+  const api = new ProxmoxApi()
+  api.username = config.proxmoxUser
+  api.password = config.proxmoxPassword
+
+  if (config.proxmoxHosts.length === 0) {
+    api.baseUrl = `https://${config.proxmoxApiServer}.${config.proxmoxDomain}:8006/api2/json`
+  } else {
+    api.baseUrl = `https://${config.proxmoxHosts[0]}:8006/api2/json`
   }
 
-  const result = await requestWorker.request(options)
-  const ticket = JSON.parse(result.response.body)
-  config.proxmoxCookies.setCookie(`PVEAuthCookie=${ticket['data']['ticket']}`, `${config.proxmoxApi}/`)
-  config.defaultRequestOptions.headers['CSRFPreventionToken'] = ticket['data']['CSRFPreventionToken']
-
-  const nodes = await requestWorker.request({
-    method: 'GET',
-    url: `${config.proxmoxApi}/nodes`
-  })
-  console.log(nodes.body)
+  await api.login()
+  const nodes = await api.getNodes()
+  config.updateProxmoxNodes(nodes['data'], /* persist */ true)
 
   requestWorker.stopWorker()
 }
